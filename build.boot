@@ -1,10 +1,11 @@
 #!/usr/bin/env boot
 
 (set-env!
- :source-paths #{"src"}
- :dependencies `[[org.clojure/clojure ~(clojure-version) :scope "provided"]])
+ :source-paths #{"src" "test"}
+ :dependencies `[[org.clojure/clojure ~(clojure-version) :scope "provided"]
+                 [adzerk/boot-test "1.2.0" :scope "test"]])
 
-
+(require '[adzerk.boot-test :refer [test]])
 
 (def project-name
   "indentor")
