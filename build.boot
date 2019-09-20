@@ -1,8 +1,10 @@
 #!/usr/bin/env boot
 
 (set-env!
- :resource-paths #{"src"}
+ :source-paths #{"src"}
  :dependencies `[[org.clojure/clojure ~(clojure-version) :scope "provided"]])
+
+
 
 (def project-name
   "indentor")
