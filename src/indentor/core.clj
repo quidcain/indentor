@@ -10,7 +10,7 @@
   (or
    (env "INDENTOR_HOME")
    #_(throw (Exception. "INDENTOR_HOME is not configured"))
-   "~/.indentor"))
+   (str (System/getProperty "user.home") "/.indentor")))
 
 (defn -main
   [& args]
