@@ -1,6 +1,7 @@
 (ns indentor.core
   (:require [clojure.tools.cli :refer [parse-opts]]
-            [clojure.java.io :refer [as-file]])
+            [clojure.java.io :refer [as-file]]
+            [clojure.string :refer [split]])
   (:gen-class))
 
 (defn env
@@ -18,6 +19,18 @@
    #_(throw (Exception. "INDENTOR_HOME is not configured"))
    (str (System/getProperty "user.home") "/.indentor")))
 
+(defn canonize-path
+  [path]
+  (-> path as-file .getCanonicalPath))
+
+(defn path->path-and-ext
+  [path]
+  (split path #"\."))
+
+(defn path->dirs
+  [path]
+  (split path #"/"))
+
 (def set-opts
   [
    ["-p" "--path PATH" "Path to a directory or a file"
@@ -34,11 +47,12 @@
 
 (defn do-set
   [args]
-  (let [result (parse-opts args set-opts)]
-    #_(println result)
-    #_(println (:options result))
-    (let [path (get-in result [:options :path])]
-      (println (->> path as-file .getCanonicalPath)))))
+  (let [result (parse-opts args set-opts)
+        opts (:options result)
+        [path ext-from-path] (-> opts :path canonize-path path->path-and-ext)
+        ext (or (:ext opts) ext-from-path)
+        dirs (path->dirs)]
+    (println "path: " path " ext:" ext)))
 
 (defn do-get
   [args]
