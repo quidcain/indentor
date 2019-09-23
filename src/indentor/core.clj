@@ -52,11 +52,11 @@
         [path ext-from-path] (-> opts :path canonize-path path->path-and-ext)
         ext (or (:ext opts) ext-from-path)
         dirs (path->dirs path)]
-    (println "path: " path " ext:" ext)))
+    [(println "path: " path " ext:" ext) nil]))
 
 (defn do-get
   [args]
-  (println "do-get"))
+  [(println "do-get") nil])
 
 (defn parse-and-act
   [args]
@@ -65,11 +65,11 @@
     (condp = action
       "set" (do-set remaining)
       "get" (do-get remaining)
-      (do
-        (println "Unexpected action. Use set or get")
-        (exit 1)))))
+      [nil "Unexpected action. Use set or get"])))
 
 (defn -main
   [& args]
-  #_(println "arg" arg rest)
-  (parse-and-act args))
+  (let [[_ err] (parse-and-act args)]
+    (when err
+      (println err)
+      (exit 1))))
