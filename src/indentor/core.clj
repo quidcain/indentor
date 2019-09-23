@@ -51,7 +51,7 @@
         opts (:options result)
         [path ext-from-path] (-> opts :path canonize-path path->path-and-ext)
         ext (or (:ext opts) ext-from-path)
-        dirs (path->dirs)]
+        dirs (path->dirs path)]
     (println "path: " path " ext:" ext)))
 
 (defn do-get
