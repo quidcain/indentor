@@ -27,9 +27,14 @@
   [path]
   (split path #"\."))
 
-(defn path->dirs
+(defn path->nesting-dirs
   [path]
-  (split path #"/"))
+  (loop [curr (as-file path)
+         acc (list curr)]
+    (let [parent (.getParentFile curr)]
+      (if-not parent
+        acc
+        (recur parent (cons parent acc))))))
 
 (def set-opts
   [

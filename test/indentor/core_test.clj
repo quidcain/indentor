@@ -1,6 +1,7 @@
 (ns indentor.core-test
   (:require [indentor.core :refer :all]
-            [clojure.test :refer [deftest is]]))
+            [clojure.test :refer [deftest is]]
+            [clojure.java.io :refer [as-file]]))
 
 (deftest get-indentor-home-test
   (with-redefs [env (constantly "/home")]
@@ -15,9 +16,14 @@
   (is (= (path->path-and-ext "/dir1/dir2/file.ext") ["/dir1/dir2/file" "ext"]))
   (is (= (path->path-and-ext "/dir1/dir2") ["/dir1/dir2"])))
 
-(deftest path->dirs-test
-  (is (= (path->dirs "/dir/") ["dir"]))
-  (is (= (path->dirs "dir") ["dir"]))
-  (is (= (path->dirs "/dir") ["dir"]))
-  (is (= (path->dirs "/dir1/dir2") ["dir1" "dir2"]))
-  (is (= (path->dirs "/dir1//dir2/") ["dir1" "dir2"])))
+(defn files-list
+  [& args]
+  (map as-file args))
+
+(deftest path->nesting-dirs-test
+  (is (= (path->nesting-dirs "/dir/")
+         (files-list "/" "/dir")))
+  (is (= (path->nesting-dirs "/dir1/dir2")
+         (files-list "/" "/dir1" "/dir1/dir2")))
+  (is (= (path->nesting-dirs "/")
+         (files-list "/"))))
