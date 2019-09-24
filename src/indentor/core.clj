@@ -1,8 +1,11 @@
 (ns indentor.core
   (:require [clojure.tools.cli :refer [parse-opts]]
-            [clojure.java.io :refer [as-file]]
+            [clojure.java.io :refer [as-file make-parents]]
             [clojure.string :refer [split]])
   (:gen-class))
+
+(def rules
+  "indentor-rules.edn")
 
 (defn env
   [n]
@@ -53,12 +56,22 @@
 
 (defn do-set
   [args]
-  (let [result (parse-opts args set-opts)
-        opts (:options result)
+  (let [opts (:options (parse-opts args set-opts))
         [path ext-from-path] (-> opts :path canjoin-path path->path-and-ext)
-        ext (or (:ext opts) ext-from-path)
-        dirs (path->dirs path)]
-    (println "path: " path " ext:" ext)))
+        ext (or (:ext opts)
+                ext-from-path
+                (throw (Exception. "Extension is required")))
+        style (or (:style opts)
+                  (throw (Exception. "Style is required")))
+        config-rules-file (as-file (canjoin-path (get-indentor-home) path rules))
+        rule {:ext (keyword ext)
+              :style (keyword style)
+              :size (:size opts)}]
+    (spit config-rules-file (pr-str (if (.exists config-rules-file)
+                                      (-> config-rules-file slurp read-string (merge rule))
+                                      (do
+                                        (make-parents config-rules-file)
+                                        rule))))))
 
 (defn do-get
   [args]
