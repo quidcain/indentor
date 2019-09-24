@@ -12,16 +12,17 @@
   [code]
   (System/exit code))
 
+(defn canjoin-path
+  "Joins and canonizes path"
+  [p & ps]
+  (str (.normalize (.toAbsolutePath (java.nio.file.Paths/get p (into-array String ps))))))
+
 (defn get-indentor-home
   []
   (or
    (env "INDENTOR_HOME")
    #_(throw (Exception. "INDENTOR_HOME is not configured"))
-   (str (System/getProperty "user.home") "/.indentor")))
-
-(defn canonize-path
-  [path]
-  (-> path as-file .getCanonicalPath))
+   (canjoin-path (System/getProperty "user.home") "/.indentor")))
 
 (defn path->path-and-ext
   [path]
@@ -54,7 +55,7 @@
   [args]
   (let [result (parse-opts args set-opts)
         opts (:options result)
-        [path ext-from-path] (-> opts :path canonize-path path->path-and-ext)
+        [path ext-from-path] (-> opts :path canjoin-path path->path-and-ext)
         ext (or (:ext opts) ext-from-path)
         dirs (path->dirs path)]
     (println "path: " path " ext:" ext)))
