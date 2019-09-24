@@ -33,12 +33,27 @@
 
 (defn path->nesting-dirs
   [path]
-  (loop [curr (as-file path)
-         acc (list curr)]
-    (let [parent (.getParentFile curr)]
-      (if-not parent
-        acc
-        (recur parent (cons parent acc))))))
+  (map #(.getPath %)
+       (loop [curr (as-file path)
+              acc (list curr)]
+         (let [parent (.getParentFile curr)]
+           (if-not parent
+             acc
+             (recur parent (cons parent acc)))))))
+
+(defn pick-from-indentor-home
+  [indentor-home dirs]
+  (if (= (first dirs) indentor-home)
+    dirs
+    (recur indentor-home (next dirs))))
+
+(defn process-rules-files
+  [files]
+  (->> files
+       (map as-file)
+       (filter #(.exists %))
+       (map #(read-string (slurp %)))
+       (reduce merge)))
 
 (def set-opts
   [
@@ -51,7 +66,8 @@
    ])
 
 (def get-opts
-  [["-p" "--path PATH" "Path to a directory or a file"]
+  [["-p" "--path PATH" "Path to a directory or a file"
+    :default ""]
    ["-e" "--ext EXTENSION" "Extension of a file to which indentation will be set"]])
 
 (defn do-set
@@ -75,7 +91,19 @@
 
 (defn do-get
   [args]
-  (println "do-get"))
+  (let [opts (:options (parse-opts args get-opts))
+        [path ext-from-path] (-> opts :path canjoin-path path->path-and-ext)
+        ext (or (:ext opts)
+                ext-from-path
+                (throw (Exception. "Extension is required")))
+        indentor-home (get-indentor-home)
+        indentor-path (canjoin-path indentor-home path)
+        dirs-from-root (path->nesting-dirs indentor-path)
+        indentor-dirs (pick-from-indentor-home indentor-home dirs-from-root)
+        config-rules-files (map #(canjoin-path % rules) indentor-dirs)]
+    (println config-rules-files)
+    (println (process-rules-files config-rules-files))
+    (println "do-get")))
 
 (defn parse-and-act
   [args]
