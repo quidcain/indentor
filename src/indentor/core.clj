@@ -97,14 +97,12 @@
         ext (or (:ext opts)
                 ext-from-path
                 (throw (Exception. "Extension is required")))
-        indentor-home (get-indentor-home)
+        indentor-home (canjoin-path (get-indentor-home))
         indentor-path (canjoin-path indentor-home path)
         dirs-from-root (path->nesting-dirs indentor-path)
         indentor-dirs (pick-from-indentor-home indentor-home dirs-from-root)
         config-rules-files (map #(canjoin-path % rules) indentor-dirs)]
-    (println config-rules-files)
-    (println (process-rules-files config-rules-files))
-    (println "do-get")))
+    (process-rules-files config-rules-files)))
 
 (defn parse-and-act
   [args]
