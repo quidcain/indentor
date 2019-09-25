@@ -1,7 +1,8 @@
 (ns indentor.core-test
   (:require [indentor.core :refer :all]
             [clojure.test :refer [deftest is]]
-            [clojure.java.io :refer [as-file]]))
+            [clojure.java.io :refer [as-file delete-file]]
+            [clojure.string :as str]))
 
 (deftest get-indentor-home-test
   (with-redefs [env (constantly "/home")]
@@ -23,3 +24,15 @@
          (list "/" "/dir1" "/dir1/dir2")))
   (is (= (path->nesting-dirs "/")
          (list "/"))))
+
+(defmacro in-test-env
+  [form]
+  `(let [test-folder# (name (gensym "test"))]
+    (.mkdir (as-file test-folder#))
+    (with-redefs [env (constantly test-folder#)]
+      ~form)
+    (delete-file test-folder#)))
+
+(deftest parse-and-act-test
+  (in-test-env
+   (is (thrown? Exception (parse-and-act (str/split "qwget -e clj -s space" #" "))))))

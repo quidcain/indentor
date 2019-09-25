@@ -83,6 +83,7 @@
         rule {:ext (keyword ext)
               :style (keyword style)
               :size (:size opts)}]
+    #_(println config-rules-file)
     (spit config-rules-file (pr-str (if (.exists config-rules-file)
                                       (-> config-rules-file slurp read-string (merge rule))
                                       (do
