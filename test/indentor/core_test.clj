@@ -1,7 +1,7 @@
 (ns indentor.core-test
   (:require [indentor.core :refer :all]
             [clojure.test :refer [deftest is]]
-            [clojure.java.io :refer [as-file delete-file]]
+            [clojure.java.io :as io]
             [clojure.string :as str]))
 
 (deftest get-indentor-home-test
@@ -25,14 +25,25 @@
   (is (= (path->nesting-dirs "/")
          (list "/"))))
 
+
+(defn delete-files-recursively
+  [f1]
+  (when (.isDirectory (io/file f1))
+    (doseq [f2 (.listFiles (io/file f1))]
+      (delete-files-recursively f2)))
+  (io/delete-file f1))
+
 (defmacro in-test-env
-  [form]
+  [& forms]
   `(let [test-folder# (name (gensym "test"))]
-    (.mkdir (as-file test-folder#))
+    (.mkdir (io/as-file test-folder#))
     (with-redefs [env (constantly test-folder#)]
-      ~form)
-    (delete-file test-folder#)))
+      ~@forms)
+    (delete-files-recursively test-folder#)))
 
 (deftest parse-and-act-test
   (in-test-env
-   (is (thrown? Exception (parse-and-act (str/split "qwget -e clj -s space" #" "))))))
+   (is (thrown? Exception (parse-and-act (str/split "qwget -e clj -s space" #" "))))
+   (is (= (do (parse-and-act (str/split "set -e clj -s space" #" "))
+              (parse-and-act (str/split "get -e clj" #" ")))
+          {:ext :clj :style :space :size 1}))))
