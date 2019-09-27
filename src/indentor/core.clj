@@ -47,7 +47,7 @@
     dirs
     (recur indentor-home (next dirs))))
 
-(defn process-rules-files
+(defn reduce-rules-files
   [files]
   (->> files
        (map as-file)
@@ -84,9 +84,8 @@
         style (or (:style opts)
                   (throw (Exception. "Style is required")))
         config-rules-file (as-file (canjoin-path (get-indentor-home) path rules))
-        rule {:ext ext
-              :style style
-              :size (:size opts)}]
+        rule {ext {:style style
+                   :size (:size opts)}}]
     (spit config-rules-file (pr-str (if (.exists config-rules-file)
                                       (-> config-rules-file slurp read-string (merge rule))
                                       (do
@@ -105,7 +104,7 @@
         dirs-from-root (path->nesting-dirs indentor-path)
         indentor-dirs (pick-from-indentor-home indentor-home dirs-from-root)
         config-rules-files (map #(canjoin-path % rules) indentor-dirs)]
-    (process-rules-files config-rules-files)))
+    (-> config-rules-files reduce-rules-files (get ext))))
 
 (defn parse-and-act
   [args]
