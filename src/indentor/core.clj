@@ -59,8 +59,10 @@
   [
    ["-p" "--path PATH" "Path to a directory or a file"
     :default ""] ; PWD
-   ["-e" "--ext EXTENSION" "Extension of a file to which indentation will be set"]
-   ["-s" "--style STYLE"]
+   ["-e" "--ext EXTENSION" "Extension of a file to which indentation will be set"
+    :parse-fn keyword]
+   ["-s" "--style STYLE"
+    :parse-fn keyword]
    ["-S" "--size SIZE"
     :parse-fn #(Integer/parseInt %)
     :default 1]
@@ -69,20 +71,21 @@
 (def get-opts
   [["-p" "--path PATH" "Path to a directory or a file"
     :default ""]
-   ["-e" "--ext EXTENSION" "Extension of a file to which indentation will be set"]])
+   ["-e" "--ext EXTENSION" "Extension of a file to which indentation will be set"
+    :parse-fn keyword]])
 
 (defn do-set
   [args]
   (let [opts (:options (parse-opts args set-opts))
         [path ext-from-path] (-> opts :path canjoin-path path->path-and-ext)
         ext (or (:ext opts)
-                ext-from-path
+                (keyword ext-from-path)
                 (throw (Exception. "Extension is required")))
         style (or (:style opts)
                   (throw (Exception. "Style is required")))
         config-rules-file (as-file (canjoin-path (get-indentor-home) path rules))
-        rule {:ext (keyword ext)
-              :style (keyword style)
+        rule {:ext ext
+              :style style
               :size (:size opts)}]
     (spit config-rules-file (pr-str (if (.exists config-rules-file)
                                       (-> config-rules-file slurp read-string (merge rule))
@@ -95,7 +98,7 @@
   (let [opts (:options (parse-opts args get-opts))
         [path ext-from-path] (-> opts :path canjoin-path path->path-and-ext)
         ext (or (:ext opts)
-                ext-from-path
+                (keyword ext-from-path)
                 (throw (Exception. "Extension is required")))
         indentor-home (canjoin-path (get-indentor-home))
         indentor-path (canjoin-path indentor-home path)
