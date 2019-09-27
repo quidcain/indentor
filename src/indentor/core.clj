@@ -62,6 +62,7 @@
    ["-e" "--ext EXTENSION" "Extension of a file to which indentation will be set"]
    ["-s" "--style STYLE"]
    ["-S" "--size SIZE"
+    :parse-fn #(Integer/parseInt %)
     :default 1]
    ])
 
