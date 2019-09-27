@@ -41,9 +41,22 @@
       ~@forms)
     (delete-files-recursively test-folder#)))
 
+(defn args
+  [s]
+  (str/split s #" "))
+
 (deftest parse-and-act-test
-  (in-test-env
-   (is (thrown? Exception (parse-and-act (str/split "qwget -e clj -s space" #" "))))
-   (is (= (do (parse-and-act (str/split "set -e clj -s space" #" "))
-              (parse-and-act (str/split "get -e clj" #" ")))
-          {:ext :clj :style :space :size 1}))))
+  (is (thrown? Exception (parse-and-act (args "qwget -e clj -s space"))))
+  (is (thrown? Exception (parse-and-act (args "set -p ./file"))))
+  (is (thrown? Exception (parse-and-act (args "set -p ./file -e js"))))
+  (in-test-env (is (= (do (parse-and-act (args "set -e clj -s tab"))
+                          (parse-and-act (args "get -e clj")))
+                      {:ext :clj :style :tab :size 1})))
+  (in-test-env (is (= (do (parse-and-act (args "set -p ./file.clj -s space -S 4"))
+                          (parse-and-act (args "get -p ./file.clj")))
+                      {:ext :clj :style :space :size 4}))
+               (is (= (parse-and-act (args "get -p ./file -e clj"))
+                      {:ext :clj :style :space :size 4})))
+  (in-test-env (is (= (do (parse-and-act (args "set -p ./file.clj -s space"))
+                          (parse-and-act (args "get -p ./file.clj")))
+                      {:ext :clj :style :space :size 1}))))
