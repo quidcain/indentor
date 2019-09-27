@@ -116,7 +116,7 @@
 (defn -main
   [& args]
   (try
-    (parse-and-act args)
+    (some-> (parse-and-act args) println)
     (catch Exception e
       (println (.getMessage e))
       (exit 1))))
