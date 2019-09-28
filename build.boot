@@ -4,7 +4,8 @@
  :source-paths #{"src" "test"}
  :dependencies `[[org.clojure/clojure ~(clojure-version) :scope "provided"]
                  [adzerk/boot-test "1.2.0" :scope "test"]
-                 [org.clojure/tools.cli "0.4.2"]])
+                 [org.clojure/tools.cli "0.4.2"]
+                 [org.clojure/data.json "0.2.6"]])
 
 (require '[adzerk.boot-test :refer [test]])
 

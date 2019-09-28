@@ -2,7 +2,8 @@
   (:require [indentor.core :refer :all]
             [clojure.test :refer [deftest is]]
             [clojure.java.io :as io]
-            [clojure.string :as str]))
+            [clojure.string :as str]
+            [clojure.data.json :as json]))
 
 (deftest get-indentor-home-test
   (with-redefs [env (constantly "/home")]
@@ -49,22 +50,22 @@
   (is (thrown? Exception (parse-and-act (args "qwget -e clj -s space"))))
   (is (thrown? Exception (parse-and-act (args "set -p ./file"))))
   (is (thrown? Exception (parse-and-act (args "set -p ./file -e js"))))
-  (in-test-env (is (= {:style :tab :size 1}
+  (in-test-env (is (= (write-data {:style :tab :size 1})
                       (do (parse-and-act (args "set -e clj -s tab"))
                           (parse-and-act (args "get -e clj"))))))
-  (in-test-env (is (= {:style :space :size 4}
+  (in-test-env (is (= (write-data {:style :space :size 4})
                       (do (parse-and-act (args "set -p ./file.clj -s space -S 4"))
                           (parse-and-act (args "get -p ./file.clj")))))
-               (is (= {:style :space :size 4}
+               (is (= (write-data {:style :space :size 4})
                       (parse-and-act (args "get -p ./file -e clj")))))
-  (in-test-env (is (= {:style :space :size 1}
+  (in-test-env (is (= (write-data {:style :space :size 1})
                       (do (parse-and-act (args "set -p ./file.clj -s space"))
                           (parse-and-act (args "get -p ./file.clj"))))))
-  (in-test-env (is (= {:style :space :size 2}
+  (in-test-env (is (= (write-data {:style :space :size 2})
                       (do (parse-and-act (args "set -p ./folder -e clj -s t ab"))
                           (parse-and-act (args "set -p ./folder/file.clj -s space -S 2"))
                           (parse-and-act (args "get -p ./folder/file.clj"))))))
-  (in-test-env (is (= {:style :tab :size 1}
+  (in-test-env (is (= (write-data {:style :tab :size 1})
                       (do (parse-and-act (args "set -e clj -s tab"))
                           (parse-and-act (args "set -e js -s space"))
                           (parse-and-act (args "get -e clj")))))))

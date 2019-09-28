@@ -1,11 +1,12 @@
 (ns indentor.core
   (:require [clojure.tools.cli :refer [parse-opts]]
             [clojure.java.io :refer [as-file make-parents]]
-            [clojure.string :refer [split]])
+            [clojure.string :refer [split]]
+            [clojure.data.json :as json])
   (:gen-class))
 
 (def rules
-  "indentor-rules.edn")
+  "indentor-rules.json")
 
 (defn env
   [n]
@@ -47,12 +48,20 @@
     dirs
     (recur indentor-home (next dirs))))
 
+(defn read-data
+  [str]
+  (json/read-str str :key-fn keyword))
+
+(defn write-data
+  [data]
+  (json/write-str data))
+
 (defn reduce-rules-files
   [files]
   (->> files
        (map as-file)
        (filter #(.exists %))
-       (map #(read-string (slurp %)))
+       (map #(read-data (slurp %)))
        (reduce merge)))
 
 (def set-opts
@@ -86,11 +95,11 @@
         config-rules-file (as-file (canjoin-path (get-indentor-home) path rules))
         rule {ext {:style style
                    :size (:size opts)}}]
-    (spit config-rules-file (pr-str (if (.exists config-rules-file)
-                                      (-> config-rules-file slurp read-string (merge rule))
-                                      (do
-                                        (make-parents config-rules-file)
-                                        rule))))))
+    (spit config-rules-file (write-data (if (.exists config-rules-file)
+                                              (-> config-rules-file slurp read-data (merge rule))
+                                              (do
+                                                (make-parents config-rules-file)
+                                                rule))))))
 
 (defn do-get
   [args]
@@ -104,7 +113,7 @@
         dirs-from-root (path->nesting-dirs indentor-path)
         indentor-dirs (pick-from-indentor-home indentor-home dirs-from-root)
         config-rules-files (map #(canjoin-path % rules) indentor-dirs)]
-    (-> config-rules-files reduce-rules-files (get ext))))
+    (-> config-rules-files reduce-rules-files (get ext) write-data)))
 
 (defn parse-and-act
   [args]
